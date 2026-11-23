@@ -27,7 +27,12 @@ function todo(name: string, ..._args: unknown[]): never {
  * que tous les cas sont couverts. Pas besoin de `default`.
  */
 export function opposite(direction: Direction): Direction {
-  return todo('opposite', direction)
+  switch (direction) {
+    case 'up': return 'down'
+    case 'down': return 'up'
+    case 'left': return 'right'
+    case 'right': return 'left'
+  }
 }
 
 /**
@@ -36,7 +41,12 @@ export function opposite(direction: Direction): Direction {
  * Indice : renvoyer un NOUVEAU point, ne jamais modifier `head` (il est `readonly`).
  */
 export function nextHead(head: Point, direction: Direction): Point {
-  return todo('nextHead', head, direction)
+  switch (direction) {
+    case 'up': return {x: head.x, y: head.y - 1};
+    case 'down': return {x: head.x, y: head.y + 1};
+    case 'left': return {x: head.x - 1, y: head.y};
+    case 'right': return {x: head.x + 1, y: head.y};
+  }
 }
 
 export function samePoint(a: Point, b: Point): boolean {
@@ -54,7 +64,9 @@ export function inside(level: Level, p: Point): boolean {
  * Trois lignes suffisent.
  */
 export function isFree(state: GameState, p: Point): boolean {
-  return todo('isFree', state, p)
+    if(!inside(state.level, p)) return false
+    if(state.level.walls.some((w) => samePoint(w, p))) return false
+    return !state.players.some((player) => player.trail.some((t) => samePoint(t, p)))
 }
 
 /**
@@ -63,6 +75,8 @@ export function isFree(state: GameState, p: Point): boolean {
  * deux fois, puis `flat()`), puis `filter` avec `isFree`, puis `filter` sur les cibles.
  */
 export function freeCells(state: GameState): Point[] {
+  //const {width, height} = state.level
+  //return Array.from({length: height}, (_, y) => Array.from({length: width}, (_, x) => ({x, y})))
   return todo('freeCells', state)
 }
 
