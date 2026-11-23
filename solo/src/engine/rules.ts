@@ -6,6 +6,7 @@
 // Ordre conseillé : opposite → nextHead → isFree → freeCells → spawnTarget → movePlayer.
 
 import {
+  BASE_LENGTH,
   TARGET_COUNT,
   type Direction,
   type GameState,
@@ -13,8 +14,7 @@ import {
   type Level,
   type Player,
   type PlayerSetup,
-  type Point,
-} from './types.ts'
+  type Point} from './types.ts'
 
 /** Marqueur de travail à faire : lève une erreur explicite. À supprimer une fois la fonction écrite. */
 function todo(name: string, ..._args: unknown[]): never {
@@ -75,9 +75,20 @@ export function isFree(state: GameState, p: Point): boolean {
  * deux fois, puis `flat()`), puis `filter` avec `isFree`, puis `filter` sur les cibles.
  */
 export function freeCells(state: GameState): Point[] {
-  //const {width, height} = state.level
-  //return Array.from({length: height}, (_, y) => Array.from({length: width}, (_, x) => ({x, y})))
-  return todo('freeCells', state)
+  const { width, height } = state.level
+
+  const cells = Array.from(
+    { length: height },
+    (_, y) =>
+      Array.from(
+        { length: width },
+        (_, x) => ({ x, y })
+      )
+  ).flat()
+
+  return cells
+    .filter(p => isFree(state, p))
+    .filter(p => !state.targets.some(t => samePoint(t, p)))
 }
 
 /**
@@ -88,7 +99,17 @@ export function freeCells(state: GameState): Point[] {
  * Indice : `Math.floor(random() * cells.length)` puis `{ ...state, targets: [...state.targets, cell] }`.
  */
 export function spawnTarget(state: GameState, random: () => number): GameState {
-  return todo('spawnTarget', state, random)
+   const cells = freeCells(state)
+
+  if (cells.length === 0) return state
+
+  const index = Math.floor(random() * cells.length)
+  const cell = cells[index]
+
+  return {
+    ...state,
+    targets: [...state.targets, cell]
+  }
 }
 
 /**
@@ -104,6 +125,39 @@ export function spawnTarget(state: GameState, random: () => number): GameState {
  * Indice : `{ ...player, direction, trail, score }` construit le nouveau joueur.
  */
 export function movePlayer(state: GameState, player: Player, wanted: Direction | undefined): Player {
+  if (!player.alive) return player
+
+  const direction =
+    wanted === undefined || wanted === opposite(player.direction)
+      ? player.direction
+      : wanted
+    
+  const head = nextHead(player.trail[0], direction)
+
+  if (!isFree(state, head)) {
+    return {
+      ...player,
+      direction,
+      alive: false
+    }
+  }
+
+  const eatsTarget = state.targets.some(t => samePoint(t, head))
+
+  const score = player.score + (eatsTarget ? 1 : 0)
+
+  const trail = [
+    head,
+    ...player.trail
+  ].slice(0, BASE_LENGTH + score)
+
+  return {
+    ...player,
+    direction,
+    trail,
+    score
+  }
+
   return todo('movePlayer', state, player, wanted)
 }
 

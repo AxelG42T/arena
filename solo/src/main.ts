@@ -1,7 +1,17 @@
 import { Game } from './engine/game.ts'
 import { bindKeyboard } from './input.ts'
+import { ScoreBoard } from './components/score-board.ts'
 import { arena } from './levels/arena.ts'
 import { createRenderer } from './renderer.ts'
+
+
+declare global {
+interface HTMLElementTagNameMap {
+'score-board': ScoreBoard
+}
+}
+const board = document.querySelector('score-board') // ScoreBoard | null, sans <ScoreBoard>
+if (board !== null) board.value = 3
 
 const canvas = document.querySelector<HTMLCanvasElement>('#arena')
 const score = document.querySelector<HTMLElement>('#score')
